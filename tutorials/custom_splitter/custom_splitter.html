@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Build your own training/testing split &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>Build your own training/testing split &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
 
   
@@ -72,7 +73,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -174,285 +175,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
-<style>
-/* CSS for nbsphinx extension */
-
-/* remove conflicting styling from Sphinx themes */
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt *,
-div.nbinput.container div.input_area pre,
-div.nboutput.container div.output_area pre,
-div.nbinput.container div.input_area .highlight,
-div.nboutput.container div.output_area .highlight {
-    border: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-}
-
-div.nbinput.container > div[class*=highlight],
-div.nboutput.container > div[class*=highlight] {
-    margin: 0;
-}
-
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt * {
-    background: none;
-}
-
-div.nboutput.container div.output_area .highlight,
-div.nboutput.container div.output_area pre {
-    background: unset;
-}
-
-div.nboutput.container div.output_area div.highlight {
-    color: unset;  /* override Pygments text color */
-}
-
-/* avoid gaps between output lines */
-div.nboutput.container div[class*=highlight] pre {
-    line-height: normal;
-}
-
-/* input/output containers */
-div.nbinput.container,
-div.nboutput.container {
-    display: -webkit-flex;
-    display: flex;
-    align-items: flex-start;
-    margin: 0;
-    width: 100%;
-}
-@media (max-width: 540px) {
-    div.nbinput.container,
-    div.nboutput.container {
-        flex-direction: column;
-    }
-}
-
-/* input container */
-div.nbinput.container {
-    padding-top: 5px;
-}
-
-/* last container */
-div.nblast.container {
-    padding-bottom: 5px;
-}
-
-/* input prompt */
-div.nbinput.container div.prompt pre {
-    color: #307FC1;
-}
-
-/* output prompt */
-div.nboutput.container div.prompt pre {
-    color: #BF5B3D;
-}
-
-/* all prompts */
-div.nbinput.container div.prompt,
-div.nboutput.container div.prompt {
-    width: 4.5ex;
-    padding-top: 5px;
-    position: relative;
-    user-select: none;
-}
-
-div.nbinput.container div.prompt > div,
-div.nboutput.container div.prompt > div {
-    position: absolute;
-    right: 0;
-    margin-right: 0.3ex;
-}
-
-@media (max-width: 540px) {
-    div.nbinput.container div.prompt,
-    div.nboutput.container div.prompt {
-        width: unset;
-        text-align: left;
-        padding: 0.4em;
-    }
-    div.nboutput.container div.prompt.empty {
-        padding: 0;
-    }
-
-    div.nbinput.container div.prompt > div,
-    div.nboutput.container div.prompt > div {
-        position: unset;
-    }
-}
-
-/* disable scrollbars on prompts */
-div.nbinput.container div.prompt pre,
-div.nboutput.container div.prompt pre {
-    overflow: hidden;
-}
-
-/* input/output area */
-div.nbinput.container div.input_area,
-div.nboutput.container div.output_area {
-    -webkit-flex: 1;
-    flex: 1;
-    overflow: auto;
-}
-@media (max-width: 540px) {
-    div.nbinput.container div.input_area,
-    div.nboutput.container div.output_area {
-        width: 100%;
-    }
-}
-
-/* input area */
-div.nbinput.container div.input_area {
-    border: 1px solid #e0e0e0;
-    border-radius: 2px;
-    /*background: #f5f5f5;*/
-}
-
-/* override MathJax center alignment in output cells */
-div.nboutput.container div[class*=MathJax] {
-    text-align: left !important;
-}
-
-/* override sphinx.ext.imgmath center alignment in output cells */
-div.nboutput.container div.math p {
-    text-align: left;
-}
-
-/* standard error */
-div.nboutput.container div.output_area.stderr {
-    background: #fdd;
-}
-
-/* ANSI colors */
-.ansi-black-fg { color: #3E424D; }
-.ansi-black-bg { background-color: #3E424D; }
-.ansi-black-intense-fg { color: #282C36; }
-.ansi-black-intense-bg { background-color: #282C36; }
-.ansi-red-fg { color: #E75C58; }
-.ansi-red-bg { background-color: #E75C58; }
-.ansi-red-intense-fg { color: #B22B31; }
-.ansi-red-intense-bg { background-color: #B22B31; }
-.ansi-green-fg { color: #00A250; }
-.ansi-green-bg { background-color: #00A250; }
-.ansi-green-intense-fg { color: #007427; }
-.ansi-green-intense-bg { background-color: #007427; }
-.ansi-yellow-fg { color: #DDB62B; }
-.ansi-yellow-bg { background-color: #DDB62B; }
-.ansi-yellow-intense-fg { color: #B27D12; }
-.ansi-yellow-intense-bg { background-color: #B27D12; }
-.ansi-blue-fg { color: #208FFB; }
-.ansi-blue-bg { background-color: #208FFB; }
-.ansi-blue-intense-fg { color: #0065CA; }
-.ansi-blue-intense-bg { background-color: #0065CA; }
-.ansi-magenta-fg { color: #D160C4; }
-.ansi-magenta-bg { background-color: #D160C4; }
-.ansi-magenta-intense-fg { color: #A03196; }
-.ansi-magenta-intense-bg { background-color: #A03196; }
-.ansi-cyan-fg { color: #60C6C8; }
-.ansi-cyan-bg { background-color: #60C6C8; }
-.ansi-cyan-intense-fg { color: #258F8F; }
-.ansi-cyan-intense-bg { background-color: #258F8F; }
-.ansi-white-fg { color: #C5C1B4; }
-.ansi-white-bg { background-color: #C5C1B4; }
-.ansi-white-intense-fg { color: #A1A6B2; }
-.ansi-white-intense-bg { background-color: #A1A6B2; }
-
-.ansi-default-inverse-fg { color: #FFFFFF; }
-.ansi-default-inverse-bg { background-color: #000000; }
-
-.ansi-bold { font-weight: bold; }
-.ansi-underline { text-decoration: underline; }
-
-
-div.nbinput.container div.input_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight].math,
-div.nboutput.container div.output_area.rendered_html,
-div.nboutput.container div.output_area > div.output_javascript,
-div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 5px;
-    margin: 0;
-}
-
-/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
-div.nbinput.container div.input_area > div[class^='highlight'],
-div.nboutput.container div.output_area > div[class^='highlight']{
-    overflow-y: hidden;
-}
-
-/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt .copybtn {
-    display: none;
-}
-
-/* Some additional styling taken form the Jupyter notebook CSS */
-.jp-RenderedHTMLCommon table,
-div.rendered_html table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
-  color: black;
-  font-size: 12px;
-  table-layout: fixed;
-}
-.jp-RenderedHTMLCommon thead,
-div.rendered_html thead {
-  border-bottom: 1px solid black;
-  vertical-align: bottom;
-}
-.jp-RenderedHTMLCommon tr,
-.jp-RenderedHTMLCommon th,
-.jp-RenderedHTMLCommon td,
-div.rendered_html tr,
-div.rendered_html th,
-div.rendered_html td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
-}
-.jp-RenderedHTMLCommon th,
-div.rendered_html th {
-  font-weight: bold;
-}
-.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
-div.rendered_html tbody tr:nth-child(odd) {
-  background: #f5f5f5;
-}
-.jp-RenderedHTMLCommon tbody tr:hover,
-div.rendered_html tbody tr:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="Build-your-own-training/testing-split">
+  <div class="section" id="Build-your-own-training/testing-split">
 <h1>Build your own training/testing split<a class="headerlink" href="#Build-your-own-training/testing-split" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Date:-2021.10.07">
 <h2>Date: 2021.10.07<a class="headerlink" href="#Date:-2021.10.07" title="Permalink to this headline">¶</a></h2>
@@ -493,12 +216,8 @@ as a final pass to see what models perform best.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-<span class="ansi-green-fg">INFO:lightwood-3154:No torchvision detected, image helpers not supported.</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:No torchvision/pillow detected, image encoder not supported</span>
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/gluonts/json.py:101: UserWarning: Using `json`-module for json-handling. Consider installing one of `orjson`, `ujson` to speed up serialization and deserialization.
-  warnings.warn(
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/gluonts/model/deepar/__init__.py:18: FutureWarning: The module gluonts.model.deepar has been moved to gluonts.mx.model.deepar. In GluonTS v0.12 it will be no longer possible to use the old path. Try to use &#39;from gluonts.mx import DeepAREstimator&#39;.
-  warnings.warn(
+<span class="ansi-green-fg">INFO:lightwood-2819:No torchvision detected, image helpers not supported.</span>
+<span class="ansi-green-fg">INFO:lightwood-2819:No torchvision/pillow detected, image encoder not supported</span>
 </pre></div></div>
 </div>
 <div class="section" id="1)-Load-your-data">
@@ -744,72 +463,72 @@ Text(0.5, 1.0, &#39;Distribution of Classes&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-<span class="ansi-green-fg">INFO:lightwood-3154:Analyzing a sample of 18424</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:from a total population of 284807, this is equivalent to 6.5% of your data.</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: Time</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column Time has data type integer</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V1</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V1 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V2</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V2 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V3</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V3 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V4</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V4 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V5</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V5 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V6</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V6 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V7</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V7 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V8</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V8 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V9</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V9 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V10</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V10 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V11</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V11 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V12</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V12 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V13</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V13 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V14</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V14 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V15</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V15 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V16</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V16 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V17</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V17 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V18</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V18 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V19</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V19 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V20</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V20 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V21</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V21 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V22</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V22 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V23</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V23 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V24</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V24 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V25</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V25 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V26</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V26 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V27</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V27 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: V28</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column V28 has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: Amount</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column Amount has data type float</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Infering type for: Class</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Column Class has data type binary</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Starting statistical analysis</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Finished statistical analysis</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Analyzing a sample of 18424</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:from a total population of 284807, this is equivalent to 6.5% of your data.</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: Time</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column Time has data type integer</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V1</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V1 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V2</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V2 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V3</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V3 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V4</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V4 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V5</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V5 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V6</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V6 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V7</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V7 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V8</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V8 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V9</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V9 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V10</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V10 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V11</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V11 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V12</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V12 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V13</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V13 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V14</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V14 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V15</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V15 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V16</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V16 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V17</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V17 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V18</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V18 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V19</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V19 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V20</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V20 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V21</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V21 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V22</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V22 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V23</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V23 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V24</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V24 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V25</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V25 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V26</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V26 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V27</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V27 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: V28</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column V28 has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: Amount</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column Amount has data type float</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Infering type for: Class</span>
+<span class="ansi-green-fg">INFO:type_infer-2819:Column Class has data type binary</span>
+<span class="ansi-green-fg">INFO:dataprep_ml-2819:Starting statistical analysis</span>
+<span class="ansi-green-fg">INFO:dataprep_ml-2819:Finished statistical analysis</span>
 </pre></div></div>
 </div>
 <p>Lightwood looks at each of the many columns and indicates they are mostly float, with exception of “<strong>Class</strong>” which is binary.</p>
@@ -828,7 +547,7 @@ Text(0.5, 1.0, &#39;Distribution of Classes&#39;)
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%writefile</span> MyCustomSplitter.py
 
-<span class="kn">from</span> <span class="nn">lightwood.api.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
+<span class="kn">from</span> <span class="nn">type_infer.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
@@ -848,7 +567,7 @@ Text(0.5, 1.0, &#39;Distribution of Classes&#39;)
     <span class="n">pct_dev</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom splitting function</span>
 
 
@@ -966,7 +685,7 @@ Writing MyCustomSplitter.py
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-<span class="ansi-green-fg">INFO:lightwood-3154:Unable to import black formatter, predictor code might be a bit ugly.</span>
+<span class="ansi-green-fg">INFO:dataprep_ml-2819:Unable to import black formatter, predictor code might be a bit ugly.</span>
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -986,14 +705,19 @@ from lightwood.helpers.general import *
 from lightwood.helpers.ts import *
 from lightwood.helpers.log import *
 from lightwood.helpers.numeric import *
-from lightwood.helpers.imputers import *
 from lightwood.helpers.parallelism import *
 from lightwood.helpers.seed import *
 from lightwood.helpers.text import *
 from lightwood.helpers.torch import *
 from lightwood.mixer import *
+
+from dataprep_ml.insights import statistical_analysis
+from dataprep_ml.cleaners import cleaner
+from dataprep_ml.splitters import splitter
+from dataprep_ml.imputers import *
+
 import pandas as pd
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 import os
 from types import ModuleType
 import importlib.machinery
@@ -1039,7 +763,7 @@ class Predictor(PredictorInterface):
                 &#34;unbias_target&#34;: True,
                 &#34;seconds_per_mixer&#34;: 42768.0,
                 &#34;seconds_per_encoder&#34;: None,
-                &#34;expected_additional_time&#34;: 68.34091114997864,
+                &#34;expected_additional_time&#34;: 67.94116759300232,
                 &#34;time_aim&#34;: 259200,
                 &#34;target_weights&#34;: None,
                 &#34;positive_domain&#34;: False,
@@ -1058,6 +782,7 @@ class Predictor(PredictorInterface):
                 },
                 &#34;anomaly_detection&#34;: False,
                 &#34;use_default_analysis&#34;: True,
+                &#34;dtype_dict&#34;: {},
                 &#34;ignore_features&#34;: [],
                 &#34;fit_on_all&#34;: True,
                 &#34;strict_mode&#34;: True,
@@ -1099,7 +824,8 @@ class Predictor(PredictorInterface):
             &#34;Amount&#34;: &#34;float&#34;,
             &#34;Class&#34;: &#34;binary&#34;,
         }
-        self.lightwood_version = &#34;22.10.4.1&#34;
+        self.lightwood_version = &#34;23.5.1.1&#34;
+        self.pred_args = PredictionArguments()
 
         # Any feature-column dependencies
         self.dependencies = {
@@ -1173,13 +899,14 @@ class Predictor(PredictorInterface):
         self.statistical_analysis = None
         self.ts_analysis = None
         self.runtime_log = dict()
+        self.global_insights = dict()
 
     @timed
     def analyze_data(self, data: pd.DataFrame) -&gt; None:
         # Perform a statistical analysis on the unprocessed data
 
-        self.statistical_analysis = lightwood.data.statistical_analysis(
-            data, self.dtype_dict, {}, self.problem_definition
+        self.statistical_analysis = statistical_analysis(
+            data, self.dtype_dict, self.problem_definition.to_dict(), {}
         )
 
         # Instantiate post-training evaluation
@@ -1204,7 +931,7 @@ class Predictor(PredictorInterface):
             target=self.target,
             mode=self.mode,
             imputers=self.imputers,
-            timeseries_settings=self.problem_definition.timeseries_settings,
+            timeseries_settings=self.problem_definition.timeseries_settings.to_dict(),
             anomaly_detection=self.problem_definition.anomaly_detection,
         )
 
@@ -1272,24 +999,33 @@ class Predictor(PredictorInterface):
         # Prepare the training + dev data
         concatenated_train_dev = pd.concat([data[&#34;train&#34;], data[&#34;dev&#34;]])
 
-        encoder_prepping_dict = {}
+        prepped_encoders = {}
 
-        # Prepare encoders that do not require learned strategies
-        for col_name, encoder in self.encoders.items():
-            if col_name != self.target and not encoder.is_trainable_encoder:
-                encoder_prepping_dict[col_name] = [
-                    encoder,
-                    concatenated_train_dev[col_name],
-                    &#34;prepare&#34;,
-                ]
+        # Prepare input encoders
+        parallel_encoding = parallel_encoding_check(data[&#34;train&#34;], self.encoders)
 
-        # Setup parallelization
-        parallel_prepped_encoders = mut_method_call(encoder_prepping_dict)
-        for col_name, encoder in parallel_prepped_encoders.items():
+        if parallel_encoding:
+            for col_name, encoder in self.encoders.items():
+                if col_name != self.target and not encoder.is_trainable_encoder:
+                    prepped_encoders[col_name] = (
+                        encoder,
+                        concatenated_train_dev[col_name],
+                        &#34;prepare&#34;,
+                    )
+            prepped_encoders = mut_method_call(prepped_encoders)
+
+        else:
+            for col_name, encoder in self.encoders.items():
+                if col_name != self.target and not encoder.is_trainable_encoder:
+                    encoder.prepare(concatenated_train_dev[col_name])
+                    prepped_encoders[col_name] = encoder
+
+        # Store encoders
+        for col_name, encoder in prepped_encoders.items():
             self.encoders[col_name] = encoder
 
         # Prepare the target
-        if self.target not in parallel_prepped_encoders:
+        if self.target not in prepped_encoders:
             if self.encoders[self.target].is_trainable_encoder:
                 self.encoders[self.target].prepare(
                     data[&#34;train&#34;][self.target], data[&#34;dev&#34;][self.target]
@@ -1372,7 +1108,7 @@ class Predictor(PredictorInterface):
                 dtype_dict=self.dtype_dict,
                 target_encoder=self.encoders[self.target],
             ),
-            LightGBM(
+            XGBoostMixer(
                 fit_on_dev=True,
                 use_optuna=True,
                 stop_after=self.problem_definition.seconds_per_mixer,
@@ -1401,7 +1137,14 @@ class Predictor(PredictorInterface):
         trained_mixers = []
         for mixer in self.mixers:
             try:
-                self.fit_mixer(mixer, encoded_train_data, encoded_dev_data)
+                if mixer.trains_once:
+                    self.fit_mixer(
+                        mixer,
+                        ConcatedEncodedDs([encoded_train_data, encoded_dev_data]),
+                        encoded_test_data,
+                    )
+                else:
+                    self.fit_mixer(mixer, encoded_train_data, encoded_dev_data)
                 trained_mixers.append(mixer)
             except Exception as e:
                 log.warning(f&#34;Exception: {e} when training mixer: {mixer}&#34;)
@@ -1409,6 +1152,10 @@ class Predictor(PredictorInterface):
                     raise e
 
         # Update mixers to trained versions
+        if not trained_mixers:
+            raise Exception(
+                &#34;No mixers could be trained! Please verify your problem definition or JsonAI model representation.&#34;
+            )
         self.mixers = trained_mixers
 
         # --------------- #
@@ -1416,7 +1163,6 @@ class Predictor(PredictorInterface):
         # --------------- #
         log.info(&#34;Ensembling the mixer&#34;)
         # Create an ensemble of mixers to identify best performing model
-        self.pred_args = PredictionArguments()
         # Dirty hack
         self.ensemble = BestOf(
             data=encoded_test_data,
@@ -1507,12 +1253,16 @@ class Predictor(PredictorInterface):
         # SET `json_ai.problem_definition.fit_on_all=False` TO TURN THIS BLOCK OFF.
 
         # Update the mixers with partial fit
-        if self.problem_definition.fit_on_all:
-
+        if self.problem_definition.fit_on_all and all(
+            [not m.trains_once for m in self.mixers]
+        ):
             log.info(f&#34;[Learn phase 8/{n_phases}] - Adjustment on validation requested&#34;)
             self.adjust(
-                enc_train_test[&#34;test&#34;],
-                ConcatedEncodedDs([enc_train_test[&#34;train&#34;], enc_train_test[&#34;dev&#34;]]),
+                enc_train_test[&#34;test&#34;].data_frame,
+                ConcatedEncodedDs(
+                    [enc_train_test[&#34;train&#34;], enc_train_test[&#34;dev&#34;]]
+                ).data_frame,
+                adjust_args={&#34;learn_call&#34;: True},
             )
 
     @timed
@@ -1520,6 +1270,7 @@ class Predictor(PredictorInterface):
         self,
         train_data: Union[EncodedDs, ConcatedEncodedDs, pd.DataFrame],
         dev_data: Optional[Union[EncodedDs, ConcatedEncodedDs, pd.DataFrame]] = None,
+        adjust_args: Optional[dict] = None,
     ) -&gt; None:
         # Update mixers with new information
 
@@ -1529,29 +1280,26 @@ class Predictor(PredictorInterface):
         # Prepare data
         # --------------- #
         if dev_data is None:
-            data = (
-                train_data
-                if isinstance(train_data, pd.DataFrame)
-                else train_data.data_frame
-            )
+            data = train_data
             split = splitter(
-                data,
-                self.problem_definition.timeseries_settings,
-                self.dtype_dict,
-                self.problem_definition.seed_nr,
+                data=data,
                 pct_train=0.8,
                 pct_dev=0.2,
                 pct_test=0,
+                tss=self.problem_definition.timeseries_settings.to_dict(),
+                seed=self.problem_definition.seed_nr,
                 target=self.target,
+                dtype_dict=self.dtype_dict,
             )
             train_data = split[&#34;train&#34;]
             dev_data = split[&#34;dev&#34;]
 
-        if isinstance(dev_data, pd.DataFrame):
-            dev_data = EncodedDs(self.encoders, dev_data, self.target)
+        if adjust_args is None or not adjust_args.get(&#34;learn_call&#34;):
+            train_data = self.preprocess(train_data)
+            dev_data = self.preprocess(dev_data)
 
-        if isinstance(train_data, pd.DataFrame):
-            train_data = EncodedDs(self.encoders, train_data, self.target)
+        dev_data = EncodedDs(self.encoders, dev_data, self.target)
+        train_data = EncodedDs(self.encoders, train_data, self.target)
 
         # --------------- #
         # Update/Adjust Mixers
@@ -1559,11 +1307,10 @@ class Predictor(PredictorInterface):
         log.info(&#34;Updating the mixers&#34;)
 
         for mixer in self.mixers:
-            mixer.partial_fit(train_data, dev_data)
+            mixer.partial_fit(train_data, dev_data, adjust_args)
 
     @timed
     def predict(self, data: pd.DataFrame, args: Dict = {}) -&gt; pd.DataFrame:
-
         self.mode = &#34;predict&#34;
         n_phases = 3 if self.pred_args.all_mixers else 4
 
@@ -1571,6 +1318,8 @@ class Predictor(PredictorInterface):
             raise Exception(
                 &#34;Empty input, aborting prediction. Please try again with some input data.&#34;
             )
+
+        self.pred_args = PredictionArguments.from_dict(args)
 
         log.info(f&#34;[Predict phase 1/{n_phases}] - Data preprocessing&#34;)
         if self.problem_definition.ignore_features:
@@ -1591,7 +1340,6 @@ class Predictor(PredictorInterface):
         encoded_data = encoded_ds.get_encoded_data(include_target=False)
 
         log.info(f&#34;[Predict phase 3/{n_phases}] - Calling ensemble&#34;)
-        self.pred_args = PredictionArguments.from_dict(args)
         df = self.ensemble(encoded_ds, args=self.pred_args)
 
         if self.pred_args.all_mixers:
@@ -1611,6 +1359,7 @@ class Predictor(PredictorInterface):
                 explainer_blocks=self.analysis_blocks,
                 pred_args=self.pred_args,
             )
+            self.global_insights = {**self.global_insights, **global_insights}
             return insights
 
 </pre></div></div>
@@ -1657,10 +1406,10 @@ class Predictor(PredictorInterface):
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-<span class="ansi-green-fg">INFO:lightwood-3154:Cleaning the data</span>
-<span class="ansi-white-fg">DEBUG:lightwood-3154: `preprocess` runtime: 14.11 seconds</span>
-<span class="ansi-green-fg">INFO:lightwood-3154:Splitting the data into train/test</span>
-<span class="ansi-white-fg">DEBUG:lightwood-3154: `split` runtime: 2.18 seconds</span>
+<span class="ansi-green-fg">INFO:dataprep_ml-2819:Cleaning the data</span>
+<span class="ansi-white-fg">DEBUG:lightwood-2819: `preprocess` runtime: 13.92 seconds</span>
+<span class="ansi-green-fg">INFO:dataprep_ml-2819:Splitting the data into train/test</span>
+<span class="ansi-white-fg">DEBUG:lightwood-2819: `split` runtime: 1.73 seconds</span>
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1726,7 +1475,7 @@ class Predictor(PredictorInterface):
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

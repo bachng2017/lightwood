@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Predictor Interface &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>Predictor Interface &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.adjust">adjust</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.analyze_data">analyze_data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.analyze_ensemble">analyze_ensemble</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.export">export</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.featurize">featurize</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.fit">fit</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api.predictor.PredictorInterface.learn">learn</a></li>
@@ -200,31 +201,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="predictor-interface">
+  <div class="section" id="predictor-interface">
 <h1>Predictor Interface<a class="headerlink" href="#predictor-interface" title="Permalink to this headline">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">PredictorInterface</span></code> creates the skeletal structure around basic functionality of Lightwood.</p>
 <span class="target" id="module-api.predictor"></span><dl class="py class">
@@ -256,7 +233,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">PredictorInterface</span></code> is created via J{ai}son’s custom code creation. A problem inherits from this class with pre-populated routines to fill out expected results, given the nature of each problem type.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="api.predictor.PredictorInterface.adjust">
-<span class="sig-name descname"><span class="pre">adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/api/predictor.html#PredictorInterface.adjust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#api.predictor.PredictorInterface.adjust" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/api/predictor.html#PredictorInterface.adjust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#api.predictor.PredictorInterface.adjust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adjusts a previously trained model on new data. Adopts the same process as <code class="docutils literal notranslate"><span class="pre">learn</span></code> but with the exception that the <cite>adjust</cite> function expects the best model to have been already trained.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -267,13 +244,14 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>new_data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – New data used to adjust a previously trained model.</p></li>
 <li><p><strong>old_data</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]) – In some situations, the old data is still required to train a model (i.e. Regression mixer) to ensure the new data doesn’t entirely override it.</p></li>
+<li><p><strong>adjust_args</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]) – Optional dictionary with parameters to customize the finetuning process.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Nothing; adjusts best-fit model</p>
+<dd class="field-odd"><p>Adjusts best-fit model in-place, doesn’t return anything.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -302,6 +280,26 @@
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="api.predictor.PredictorInterface.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_ai_code</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/api/predictor.html#PredictorInterface.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#api.predictor.PredictorInterface.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports both the predictor object and its code to a single binary file for later usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Location to store your Predictor Instance.</p></li>
+<li><p><strong>json_ai_code</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The code generated by the user’s specification.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Saves Predictor instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -409,18 +407,11 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="api.predictor.PredictorInterface.save">
 <span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/api/predictor.html#PredictorInterface.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#api.predictor.PredictorInterface.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>With a provided file path, saves the Predictor instance for later use.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>file_path</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Location to store your Predictor Instance.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Saves Predictor instance.</p>
-</dd>
-</dl>
+<dd><p>With a provided file path, saves the Predictor instance for later use.
+:type file_path: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
+:param file_path: Location to store your Predictor Instance.
+:rtype: <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>
+:returns: Saves Predictor instance.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -458,7 +449,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

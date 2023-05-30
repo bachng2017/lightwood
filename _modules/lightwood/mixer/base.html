@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>lightwood.mixer.base &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>lightwood.mixer.base &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -171,14 +171,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for lightwood.mixer.base</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">lightwood.data.encoded_ds</span> <span class="kn">import</span> <span class="n">EncodedDs</span>
 <span class="kn">from</span> <span class="nn">lightwood.api.types</span> <span class="kn">import</span> <span class="n">PredictionArguments</span>
 
 
 <div class="viewcode-block" id="BaseMixer"><a class="viewcode-back" href="../../../mixer.html#mixer.BaseMixer">[docs]</a><span class="k">class</span> <span class="nc">BaseMixer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all mixers.</span>
 
 <span class="sd">    Mixers are the backbone of all Lightwood machine learning models. They intake encoded feature representations for every column, and are tasked with learning to fulfill the predictive requirements stated in a problem definition.</span>
@@ -193,21 +194,23 @@
 <span class="sd">    - stable: If set to `True`, this mixer should always work. Any mixer with `stable=False` can be expected to fail under some circumstances.</span>
 <span class="sd">    - fit_data_len: Length of the training data.</span>
 <span class="sd">    - supports_proba: For classification tasks, whether the mixer supports yielding per-class scores rather than only returning the predicted label. </span>
-
+<span class="sd">    - trains_once: If True, the mixer is trained once during learn, using all available input data (`train` and `dev` splits for training, `test` for validation). Otherwise, it trains once with the `train`` split &amp; `dev` for validation, and optionally (depending on the problem definition `fit_on_all` and mixer-wise `fit_on_dev` arguments) a second time after post-training analysis via partial_fit, with `train` and `dev` splits as training subset, and `test` split as validation. Should only be set to True for mixers that don&#39;t require post-training analysis, as otherwise actual validation data would be treated as a held-out portion, which is a mistake. </span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
     <span class="n">stable</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">fit_data_len</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># @TODO (Patricio): should this really be in `BaseMixer`?</span>
     <span class="n">supports_proba</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">trains_once</span><span class="p">:</span> <span class="nb">bool</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stop_after</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param stop_after: Time budget to train this mixer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop_after</span> <span class="o">=</span> <span class="n">stop_after</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">supports_proba</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trains_once</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="BaseMixer.fit"><a class="viewcode-back" href="../../../mixer.html#mixer.BaseMixer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">,</span> <span class="n">dev_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fits/trains a mixer with training data. </span>
 <span class="sd">         </span>
 <span class="sd">        :param train_data: encoded representations of the training data subset. </span>
@@ -218,7 +221,7 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">,</span>
                  <span class="n">args</span><span class="p">:</span> <span class="n">PredictionArguments</span> <span class="o">=</span> <span class="n">PredictionArguments</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls a trained mixer to predict the target column given some input data.</span>
 <span class="sd">        </span>
 <span class="sd">        :param ds: encoded representations of input data.</span>
@@ -227,12 +230,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
-<div class="viewcode-block" id="BaseMixer.partial_fit"><a class="viewcode-back" href="../../../mixer.html#mixer.BaseMixer.partial_fit">[docs]</a>    <span class="k">def</span> <span class="nf">partial_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">,</span> <span class="n">dev_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseMixer.partial_fit"><a class="viewcode-back" href="../../../mixer.html#mixer.BaseMixer.partial_fit">[docs]</a>    <span class="k">def</span> <span class="nf">partial_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">,</span> <span class="n">dev_data</span><span class="p">:</span> <span class="n">EncodedDs</span><span class="p">,</span> <span class="n">adjust_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Partially fits/trains a mixer with new training data. This is a somewhat experimental method, and it aims at updating pre-existing Lightwood predictors. </span>
 
 <span class="sd">        :param train_data: encoded representations of the new training data subset. </span>
 <span class="sd">        :param dev_data: encoded representations of new the &quot;dev&quot; data subset. As in `fit()`, this can be used as an internal validation subset. </span>
+<span class="sd">        :param adjust_args: optional arguments to customize the finetuning process.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
         <span class="k">pass</span></div></div>
@@ -247,7 +251,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>api.types &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>api.types &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -176,7 +176,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">lightwood.api.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
+<span class="kn">from</span> <span class="nn">type_infer.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
 
 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypedDict</span>
@@ -193,7 +193,7 @@
 <span class="c1"># See: https://www.python.org/dev/peps/pep-0589/ for how this works</span>
 <span class="c1"># Not very intuitive but very powerful abstraction, might be useful in other places (@TODO)</span>
 <div class="viewcode-block" id="Module"><a class="viewcode-back" href="../../api/types.html#api.types.Module">[docs]</a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Modules are the blocks of code that end up being called from the JSON AI, representing either object instantiations or function calls.</span>
 
 <span class="sd">    :param module: Name of the module (function or class name)</span>
@@ -203,83 +203,9 @@
     <span class="n">args</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="TypeInformation"><a class="viewcode-back" href="../../api/types.html#api.types.TypeInformation">[docs]</a><span class="nd">@dataclass_json</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">TypeInformation</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    For a dataset, provides information on columns types, how they&#39;re used, and any other potential identifiers.</span>
-
-<span class="sd">    TypeInformation is generated within ``data.infer_types``, where small samples of each column are evaluated in a custom framework to understand what kind of data type the model is. The user may override data types, but it is recommended to do so within a JSON-AI config file.</span>
-
-<span class="sd">    :param dtypes: For each column&#39;s name, the associated data type inferred.</span>
-<span class="sd">    :param additional_info: Any possible sub-categories or additional descriptive information.</span>
-<span class="sd">    :param identifiers: Columns within the dataset highly suspected of being identifiers or IDs. These do not contain informatic value, therefore will be ignored in subsequent training/analysis procedures unless manually indicated.</span>
-<span class="sd">    &quot;&quot;&quot;</span> <span class="c1"># noqa</span>
-
-    <span class="n">dtypes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-    <span class="n">additional_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span>
-    <span class="n">identifiers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">additional_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">identifiers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="StatisticalAnalysis"><a class="viewcode-back" href="../../api/types.html#api.types.StatisticalAnalysis">[docs]</a><span class="nd">@dataclass_json</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">StatisticalAnalysis</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The Statistical Analysis data class allows users to consider key descriptors of their data using simple \</span>
-<span class="sd">        techniques such as histograms, mean and standard deviation, word count, missing values, and any detected bias\</span>
-<span class="sd">             in the information.</span>
-
-<span class="sd">    :param nr_rows: Number of rows (samples) in the dataset</span>
-<span class="sd">    :param nr_columns: Number of columns (features) in the dataset</span>
-<span class="sd">    :param df_target_stddev: The standard deviation of the target of the dataset</span>
-<span class="sd">    :param train_observed_classes:</span>
-<span class="sd">    :param target_class_distribution:</span>
-<span class="sd">    :param target_weights: What weight the analysis suggests to assign each class by in the case of classification problems. Note: target_weights in the problem definition overides this</span>
-<span class="sd">    :param histograms:</span>
-<span class="sd">    :param buckets:</span>
-<span class="sd">    :param missing:</span>
-<span class="sd">    :param distinct:</span>
-<span class="sd">    :param bias:</span>
-<span class="sd">    :param avg_words_per_sentence:</span>
-<span class="sd">    :param positive_domain:</span>
-<span class="sd">    :param ts_stats:</span>
-<span class="sd">    &quot;&quot;&quot;</span> <span class="c1"># noqa</span>
-
-    <span class="n">nr_rows</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">nr_columns</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">df_target_stddev</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-    <span class="n">train_observed_classes</span><span class="p">:</span> <span class="nb">object</span>  <span class="c1"># Union[None, List[str]]</span>
-    <span class="n">target_class_distribution</span><span class="p">:</span> <span class="nb">object</span>  <span class="c1"># Dict[str, float]</span>
-    <span class="n">target_weights</span><span class="p">:</span> <span class="nb">object</span>  <span class="c1"># Dict[str, float]</span>
-    <span class="n">histograms</span><span class="p">:</span> <span class="nb">object</span>  <span class="c1"># Dict[str, Dict[str, List[object]]]</span>
-    <span class="n">buckets</span><span class="p">:</span> <span class="nb">object</span>  <span class="c1"># Dict[str, Dict[str, List[object]]]</span>
-    <span class="n">missing</span><span class="p">:</span> <span class="nb">object</span>
-    <span class="n">distinct</span><span class="p">:</span> <span class="nb">object</span>
-    <span class="n">bias</span><span class="p">:</span> <span class="nb">object</span>
-    <span class="n">avg_words_per_sentence</span><span class="p">:</span> <span class="nb">object</span>
-    <span class="n">positive_domain</span><span class="p">:</span> <span class="nb">bool</span>
-    <span class="n">ts_stats</span><span class="p">:</span> <span class="nb">dict</span></div>
-
-
-<div class="viewcode-block" id="DataAnalysis"><a class="viewcode-back" href="../../api/types.html#api.types.DataAnalysis">[docs]</a><span class="nd">@dataclass_json</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">DataAnalysis</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Data Analysis wraps :class: `.StatisticalAnalysis` and :class: `.TypeInformation` together. Further details can be seen in their respective documentation references.</span>
-<span class="sd">    &quot;&quot;&quot;</span> <span class="c1"># noqa</span>
-
-    <span class="n">statistical_analysis</span><span class="p">:</span> <span class="n">StatisticalAnalysis</span>
-    <span class="n">type_information</span><span class="p">:</span> <span class="n">TypeInformation</span></div>
-
-
 <div class="viewcode-block" id="TimeseriesSettings"><a class="viewcode-back" href="../../api/types.html#api.types.TimeseriesSettings">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">TimeseriesSettings</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For time-series specific problems, more specific treatment of the data is necessary. The following attributes \</span>
 <span class="sd">        enable time-series tasks to be carried out properly.</span>
 
@@ -319,7 +245,7 @@
 
 <div class="viewcode-block" id="TimeseriesSettings.from_dict"><a class="viewcode-back" href="../../api/types.html#api.types.TimeseriesSettings.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a TimeseriesSettings object from python dictionary specifications.</span>
 
 <span class="sd">        :param: obj: A python dictionary with the necessary representation for time-series. The only mandatory columns are ``order_by`` and ``window``.</span>
@@ -358,7 +284,7 @@
 
 <div class="viewcode-block" id="TimeseriesSettings.from_json"><a class="viewcode-back" href="../../api/types.html#api.types.TimeseriesSettings.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a TimeseriesSettings object from JSON specifications via python dictionary.</span>
 
 <span class="sd">        :param: data: JSON-config file with necessary Time-series specifications</span>
@@ -368,7 +294,7 @@
         <span class="k">return</span> <span class="n">TimeseriesSettings</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="TimeseriesSettings.to_dict"><a class="viewcode-back" href="../../api/types.html#api.types.TimeseriesSettings.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a dictionary from ``TimeseriesSettings`` object</span>
 
 <span class="sd">        :returns: A python dictionary containing the ``TimeSeriesSettings`` specifications.</span>
@@ -376,7 +302,7 @@
         <span class="k">return</span> <span class="n">_asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="n">encode_json</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TimeseriesSettings.to_json"><a class="viewcode-back" href="../../api/types.html#api.types.TimeseriesSettings.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates JSON config from TimeseriesSettings object</span>
 <span class="sd">        :returns: The JSON config syntax containing the ``TimeSeriesSettings`` specifications.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -385,7 +311,7 @@
 
 <div class="viewcode-block" id="ProblemDefinition"><a class="viewcode-back" href="../../api/types.html#api.types.ProblemDefinition">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">ProblemDefinition</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The ``ProblemDefinition`` object indicates details on how the models that predict the target are prepared. \</span>
 <span class="sd">        The only required specification from a user is the ``target``, which indicates the column within the input \</span>
 <span class="sd">        data that the user is trying to predict. Within the ``ProblemDefinition``, the user can specify aspects \</span>
@@ -408,6 +334,8 @@
 <span class="sd">         available settings.</span>
 <span class="sd">    :param anomaly_detection: Whether to conduct unsupervised anomaly detection; currently supported only for time-\</span>
 <span class="sd">        series.</span>
+<span class="sd">    :param dtype_dict: Mapping of features to types (see `mindsdb.type_infer` for all possible values). This will \</span>
+<span class="sd">    override the automated type inference results.</span>
 <span class="sd">    :param ignore_features: The names of the columns the user wishes to ignore in the ML pipeline. Any column name \</span>
 <span class="sd">        found in this list will be automatically removed from subsequent steps in the ML pipeline.</span>
 <span class="sd">    :param use_default_analysis: whether default analysis blocks are enabled.</span>
@@ -430,6 +358,7 @@
     <span class="n">timeseries_settings</span><span class="p">:</span> <span class="n">TimeseriesSettings</span>
     <span class="n">anomaly_detection</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">use_default_analysis</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">dtype_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
     <span class="n">ignore_features</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">fit_on_all</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">strict_mode</span><span class="p">:</span> <span class="nb">bool</span>
@@ -437,7 +366,7 @@
 
 <div class="viewcode-block" id="ProblemDefinition.from_dict"><a class="viewcode-back" href="../../api/types.html#api.types.ProblemDefinition.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a ProblemDefinition object from a python dictionary with necessary specifications.</span>
 
 <span class="sd">        :param obj: A python dictionary with the necessary features for the ``ProblemDefinition`` class.</span>
@@ -458,6 +387,7 @@
 
         <span class="n">target_weights</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;target_weights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">positive_domain</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;positive_domain&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">dtype_dict</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dtype_dict&#39;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="n">timeseries_settings</span> <span class="o">=</span> <span class="n">TimeseriesSettings</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;timeseries_settings&#39;</span><span class="p">,</span> <span class="p">{}))</span>
         <span class="n">anomaly_detection</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;anomaly_detection&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">ignore_features</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ignore_features&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -477,6 +407,7 @@
             <span class="n">positive_domain</span><span class="o">=</span><span class="n">positive_domain</span><span class="p">,</span>
             <span class="n">timeseries_settings</span><span class="o">=</span><span class="n">timeseries_settings</span><span class="p">,</span>
             <span class="n">anomaly_detection</span><span class="o">=</span><span class="n">anomaly_detection</span><span class="p">,</span>
+            <span class="n">dtype_dict</span><span class="o">=</span><span class="n">dtype_dict</span><span class="p">,</span>
             <span class="n">ignore_features</span><span class="o">=</span><span class="n">ignore_features</span><span class="p">,</span>
             <span class="n">use_default_analysis</span><span class="o">=</span><span class="n">use_default_analysis</span><span class="p">,</span>
             <span class="n">fit_on_all</span><span class="o">=</span><span class="n">fit_on_all</span><span class="p">,</span>
@@ -488,7 +419,7 @@
 
 <div class="viewcode-block" id="ProblemDefinition.from_json"><a class="viewcode-back" href="../../api/types.html#api.types.ProblemDefinition.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a ProblemDefinition Object from JSON config file.</span>
 
 <span class="sd">        :param data:</span>
@@ -498,7 +429,7 @@
         <span class="k">return</span> <span class="n">ProblemDefinition</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="ProblemDefinition.to_dict"><a class="viewcode-back" href="../../api/types.html#api.types.ProblemDefinition.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a python dictionary from the ProblemDefinition object</span>
 
 <span class="sd">        :returns: A python dictionary</span>
@@ -506,7 +437,7 @@
         <span class="k">return</span> <span class="n">_asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="n">encode_json</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProblemDefinition.to_json"><a class="viewcode-back" href="../../api/types.html#api.types.ProblemDefinition.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a JSON config from the ProblemDefinition object</span>
 
 <span class="sd">        :returns: TODO</span>
@@ -516,7 +447,7 @@
 
 <div class="viewcode-block" id="JsonAI"><a class="viewcode-back" href="../../api/types.html#api.types.JsonAI">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">JsonAI</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The JsonAI Class allows users to construct flexible JSON config to specify their ML pipeline. JSON-AI follows a \</span>
 <span class="sd">    recipe of how to pre-process data, construct features, and train on the target column. To do so, the following \</span>
 <span class="sd">    specifications are required internally.</span>
@@ -527,8 +458,8 @@
 <span class="sd">    :param model: The ensemble and its submodels</span>
 <span class="sd">    :param problem_definition: The ``ProblemDefinition`` criteria.</span>
 <span class="sd">    :param identifiers: A dictionary of column names and respective data types that are likely identifiers/IDs within the data. Through the default cleaning process, these are ignored.</span>
-<span class="sd">    :param cleaner: The Cleaner object represents the pre-processing step on a dataframe. The user can specify custom subroutines, if they choose, on how to handle preprocessing. Alternatively, &quot;None&quot; suggests Lightwood&#39;s default approach in ``data.cleaner``.</span>
-<span class="sd">    :param splitter: The Splitter object is the method in which the input data is split into training/validation/testing data.</span>
+<span class="sd">    :param cleaner: The Cleaner object represents the pre-processing step on a dataframe. The user can specify custom subroutines, if they choose, on how to handle preprocessing. Alternatively, &quot;None&quot; suggests the default approach in ``dataprep_ml.cleaners``.</span>
+<span class="sd">    :param splitter: The Splitter object is the method in which the input data is split into training/validation/testing data. For more details, refer to the `dataprep_ml` package documentation.</span>
 <span class="sd">    :param analyzer: The Analyzer object is used to evaluate how well a model performed on the predictive task.</span>
 <span class="sd">    :param explainer: The Explainer object deploys explainability tools of interest on a model to indicate how well a model generalizes its predictions.</span>
 <span class="sd">    :param imputers: A list of objects that will impute missing data on each column. They are called inside the cleaner.</span>
@@ -556,7 +487,7 @@
 
 <div class="viewcode-block" id="JsonAI.from_dict"><a class="viewcode-back" href="../../api/types.html#api.types.JsonAI.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a JSON-AI object from dictionary specifications of the JSON-config.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">encoders</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;encoders&quot;</span><span class="p">]</span>
@@ -597,11 +528,11 @@
 
 <div class="viewcode-block" id="JsonAI.from_json"><a class="viewcode-back" href="../../api/types.html#api.types.JsonAI.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a JSON-AI object from JSON config&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a JSON-AI object from JSON config&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">JsonAI</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="JsonAI.to_dict"><a class="viewcode-back" href="../../api/types.html#api.types.JsonAI.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a python dictionary with necessary modules within the ML pipeline specified from the JSON-AI object.</span>
 
 <span class="sd">        :returns: A python dictionary that has the necessary components of the ML pipeline for a given dataset.</span>
@@ -618,7 +549,7 @@
         <span class="k">return</span> <span class="n">as_dict</span></div>
 
 <div class="viewcode-block" id="JsonAI.to_json"><a class="viewcode-back" href="../../api/types.html#api.types.JsonAI.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates JSON config to represent the necessary modules within the ML pipeline specified from the JSON-AI object.</span>
 
 <span class="sd">        :returns: A JSON config that has the necessary components of the ML pipeline for a given dataset.</span>
@@ -637,7 +568,7 @@
 <div class="viewcode-block" id="ModelAnalysis"><a class="viewcode-back" href="../../api/types.html#api.types.ModelAnalysis">[docs]</a><span class="nd">@dataclass_json</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">ModelAnalysis</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The ``ModelAnalysis`` class stores useful information to describe a model and understand its predictive performance on a validation dataset.</span>
 <span class="sd">    For each trained ML algorithm, we store:</span>
 
@@ -667,7 +598,7 @@
 
 <div class="viewcode-block" id="PredictionArguments"><a class="viewcode-back" href="../../api/types.html#api.types.PredictionArguments">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">PredictionArguments</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class contains all possible arguments that can be passed to a Lightwood predictor at inference time.</span>
 <span class="sd">    On each predict call, all arguments included in a parameter dictionary will update the respective fields</span>
 <span class="sd">    in the `PredictionArguments` instance that the predictor will have.</span>
@@ -675,26 +606,30 @@
 <span class="sd">    :param predict_proba: triggers (where supported) predictions in raw probability output form. I.e. for classifiers,</span>
 <span class="sd">    instead of returning only the predicted class, the output additionally includes the assigned probability for</span>
 <span class="sd">    each class.   </span>
-<span class="sd">    :param all_mixers: forces an ensemble to return predictions emitted by all its internal mixers. </span>
+<span class="sd">    :param all_mixers: forces an ensemble to return predictions emitted by all its internal mixers.</span>
+<span class="sd">    :param mixer_weights: a list with coefficients that are normalized into 0-1 bounded scores to mix the output of all mixers available to a compatible ensemble (e.g. [0.5, 0.5] for an ensemble with two mixers would yield the mean prediction). Can be used with WeightedMeanEnsemble, StackedEnsemble or TsStackedEnsemble.</span>
 <span class="sd">    :param fixed_confidence: Used in the ICP analyzer module, specifies an `alpha` fixed confidence so that predictions, in average, are correct `alpha` percent of the time. For unsupervised anomaly detection, this also translates into the expected error rate. Bounded between 0.01 and 0.99 (respectively implies wider and tighter bounds, all other parameters being equal).</span>
 <span class="sd">    :param anomaly_cooldown: Sets the minimum amount of timesteps between consecutive firings of the the anomaly detector.</span>
 <span class="sd">    :param simple_ts_bounds: in forecasting contexts, enabling this parameter disables the usual conformal-based bounds (with Bonferroni correction) and resorts to a simpler way of scaling bounds through the horizon based on the uncertainty estimation for the first value in the forecast (see helpers.ts.add_tn_num_conf_bounds for the implementation).</span>
 <span class="sd">    :param anomaly_cooldown: Sets the minimum amount of timesteps between consecutive firings of the the anomaly \</span>
 <span class="sd">        detector.</span>
 <span class="sd">    :param time_format: For time series predictors. If set to `infer`, predicted `order_by` timestamps will be formatted back to the original dataset&#39;s `order_by` format. Any other string value will be used as a formatting string, unless empty (&#39;&#39;), which disables the feature (this is the default behavior).</span>
+<span class="sd">    :param force_ts_infer: For time series predictors. If set to `true`, an additional row will be produced per each group in the input DF, corresponding to an out-of-sample forecast w.r.t. to the input timestamps.</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
 
     <span class="n">predict_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">all_mixers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">mixer_weights</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">fixed_confidence</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">anomaly_cooldown</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">forecast_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">simple_ts_bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">time_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">force_ts_infer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="PredictionArguments.from_dict"><a class="viewcode-back" href="../../api/types.html#api.types.PredictionArguments.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a ``PredictionArguments`` object from a python dictionary with necessary specifications.</span>
 
 <span class="sd">        :param obj: A python dictionary with the necessary features for the ``PredictionArguments`` class.</span>
@@ -705,26 +640,30 @@
         <span class="c1"># maybe this should be stateful instead, and save the latest used value for each field?</span>
         <span class="n">predict_proba</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;predict_proba&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">)</span>
         <span class="n">all_mixers</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;all_mixers&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">all_mixers</span><span class="p">)</span>
+        <span class="n">mixer_weights</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mixer_weights&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">mixer_weights</span><span class="p">)</span>
         <span class="n">fixed_confidence</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fixed_confidence&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">fixed_confidence</span><span class="p">)</span>
         <span class="n">anomaly_cooldown</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;anomaly_cooldown&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">anomaly_cooldown</span><span class="p">)</span>
         <span class="n">forecast_offset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;forecast_offset&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">forecast_offset</span><span class="p">)</span>
         <span class="n">simple_ts_bounds</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;simple_ts_bounds&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">simple_ts_bounds</span><span class="p">)</span>
         <span class="n">time_format</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_format&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">time_format</span><span class="p">)</span>
+        <span class="n">force_ts_infer</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;force_ts_infer&#39;</span><span class="p">,</span> <span class="n">PredictionArguments</span><span class="o">.</span><span class="n">force_ts_infer</span><span class="p">)</span>
 
         <span class="n">pred_args</span> <span class="o">=</span> <span class="n">PredictionArguments</span><span class="p">(</span>
             <span class="n">predict_proba</span><span class="o">=</span><span class="n">predict_proba</span><span class="p">,</span>
             <span class="n">all_mixers</span><span class="o">=</span><span class="n">all_mixers</span><span class="p">,</span>
+            <span class="n">mixer_weights</span><span class="o">=</span><span class="n">mixer_weights</span><span class="p">,</span>
             <span class="n">fixed_confidence</span><span class="o">=</span><span class="n">fixed_confidence</span><span class="p">,</span>
             <span class="n">anomaly_cooldown</span><span class="o">=</span><span class="n">anomaly_cooldown</span><span class="p">,</span>
             <span class="n">forecast_offset</span><span class="o">=</span><span class="n">forecast_offset</span><span class="p">,</span>
             <span class="n">simple_ts_bounds</span><span class="o">=</span><span class="n">simple_ts_bounds</span><span class="p">,</span>
             <span class="n">time_format</span><span class="o">=</span><span class="n">time_format</span><span class="p">,</span>
+            <span class="n">force_ts_infer</span><span class="o">=</span><span class="n">force_ts_infer</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">pred_args</span></div>
 
 <div class="viewcode-block" id="PredictionArguments.to_dict"><a class="viewcode-back" href="../../api/types.html#api.types.PredictionArguments.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_json</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Json</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a python dictionary from the ``PredictionArguments`` object</span>
 
 <span class="sd">        :returns: A python dictionary</span>
@@ -741,7 +680,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

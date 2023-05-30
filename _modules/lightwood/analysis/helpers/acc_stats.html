@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>lightwood.analysis.helpers.acc_stats &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>lightwood.analysis.helpers.acc_stats &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -178,14 +178,13 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">confusion_matrix</span>
 
-<span class="kn">from</span> <span class="nn">lightwood.api.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
+<span class="kn">from</span> <span class="nn">type_infer.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
 <span class="kn">from</span> <span class="nn">lightwood.analysis.base</span> <span class="kn">import</span> <span class="n">BaseAnalysisBlock</span>
-<span class="kn">from</span> <span class="nn">lightwood.helpers.general</span> <span class="kn">import</span> <span class="n">evaluate_accuracy</span>
-<span class="kn">from</span> <span class="nn">lightwood.helpers.log</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">mindsdb_evaluator</span> <span class="kn">import</span> <span class="n">evaluate_accuracies</span>
 
 
 <div class="viewcode-block" id="AccStats"><a class="viewcode-back" href="../../../../analysis.html#analysis.AccStats">[docs]</a><span class="k">class</span> <span class="nc">AccStats</span><span class="p">(</span><span class="n">BaseAnalysisBlock</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Computes accuracy stats and a confusion matrix for the validation dataset &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Computes accuracy stats and a confusion matrix for the validation dataset &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ICP&#39;</span><span class="p">,)):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">deps</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
@@ -194,14 +193,10 @@
 <div class="viewcode-block" id="AccStats.analyze"><a class="viewcode-back" href="../../../../analysis.html#analysis.AccStats.analyze">[docs]</a>    <span class="k">def</span> <span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
         <span class="n">ns</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">ns</span><span class="o">.</span><span class="n">accuracy_functions</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;evaluate_array_accuracy&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">ns</span><span class="o">.</span><span class="n">ts_analysis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ts_naive_mae&#39;</span><span class="p">,</span> <span class="p">{}):</span>
-            <span class="n">accuracy_functions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bounded_ts_accuracy&#39;</span><span class="p">]</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AccStats will bound the array accuracy for reporting purposes. Check `bounded_ts_accuracy` for a description of the bounding procedure.&quot;</span><span class="p">)</span>  <span class="c1"># noqa</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">accuracy_functions</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">accuracy_functions</span>
+        <span class="n">accuracy_functions</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">accuracy_functions</span>
 
-        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;score_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluate_accuracy</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">normal_predictions</span><span class="p">[</span><span class="s1">&#39;prediction&#39;</span><span class="p">],</span>
-                                               <span class="n">ns</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">accuracy_functions</span><span class="p">,</span> <span class="n">ts_analysis</span><span class="o">=</span><span class="n">ns</span><span class="o">.</span><span class="n">ts_analysis</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;score_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluate_accuracies</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">normal_predictions</span><span class="p">[</span><span class="s1">&#39;prediction&#39;</span><span class="p">],</span>
+                                                 <span class="n">ns</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">accuracy_functions</span><span class="p">,</span> <span class="n">ts_analysis</span><span class="o">=</span><span class="n">ns</span><span class="o">.</span><span class="n">ts_analysis</span><span class="p">)</span>
 
         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;normal_accuracy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;score_dict&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_decimals</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;result_df&#39;</span><span class="p">])</span>
@@ -319,7 +314,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_value_bucket</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">buckets</span><span class="p">,</span> <span class="n">target_dtype</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :return: The bucket in the `histogram` in which our `value` falls</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">buckets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -340,7 +335,7 @@
 
 
 <span class="k">def</span> <span class="nf">closest</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :return: The index of the member of `arr` which is closest to `value`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -363,7 +358,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

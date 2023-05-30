@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>api.json_ai &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>api.json_ai &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -173,13 +173,14 @@
   <h1>Source code for api.json_ai</h1><div class="highlight"><pre>
 <span></span><span class="c1"># TODO: _add_implicit_values unit test ensures NO changes for a fully specified file.</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">type_infer.base</span> <span class="kn">import</span> <span class="n">TypeInformation</span>
+<span class="kn">from</span> <span class="nn">dataprep_ml</span> <span class="kn">import</span> <span class="n">StatisticalAnalysis</span>
+
 <span class="kn">from</span> <span class="nn">lightwood.helpers.templating</span> <span class="kn">import</span> <span class="n">call</span><span class="p">,</span> <span class="n">inline_dict</span><span class="p">,</span> <span class="n">align</span>
 <span class="kn">from</span> <span class="nn">lightwood.helpers.templating</span> <span class="kn">import</span> <span class="n">_consolidate_analysis_blocks</span>
-<span class="kn">from</span> <span class="nn">lightwood.api</span> <span class="kn">import</span> <span class="n">dtype</span>
+<span class="kn">from</span> <span class="nn">type_infer.dtype</span> <span class="kn">import</span> <span class="n">dtype</span>
 <span class="kn">from</span> <span class="nn">lightwood.api.types</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">JsonAI</span><span class="p">,</span>
-    <span class="n">TypeInformation</span><span class="p">,</span>
-    <span class="n">StatisticalAnalysis</span><span class="p">,</span>
     <span class="n">ProblemDefinition</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
@@ -216,14 +217,19 @@
 <span class="s2">from lightwood.helpers.ts import *</span>
 <span class="s2">from lightwood.helpers.log import *</span>
 <span class="s2">from lightwood.helpers.numeric import *</span>
-<span class="s2">from lightwood.helpers.imputers import *</span>
 <span class="s2">from lightwood.helpers.parallelism import *</span>
 <span class="s2">from lightwood.helpers.seed import *</span>
 <span class="s2">from lightwood.helpers.text import *</span>
 <span class="s2">from lightwood.helpers.torch import *</span>
 <span class="s2">from lightwood.mixer import *</span>
+
+<span class="s2">from dataprep_ml.insights import statistical_analysis</span>
+<span class="s2">from dataprep_ml.cleaners import cleaner</span>
+<span class="s2">from dataprep_ml.splitters import splitter</span>
+<span class="s2">from dataprep_ml.imputers import *</span>
+
 <span class="s2">import pandas as pd</span>
-<span class="s2">from typing import Dict, List, Union</span>
+<span class="s2">from typing import Dict, List, Union, Optional</span>
 <span class="s2">import os</span>
 <span class="s2">from types import ModuleType</span>
 <span class="s2">import importlib.machinery</span>
@@ -240,7 +246,7 @@
     <span class="n">is_target_predicting_encoder</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">statistical_analysis</span><span class="p">:</span> <span class="n">StatisticalAnalysis</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Assign a default encoder for a given column based on its data type, and whether it is a target. Encoders intake raw (but cleaned) data and return an feature representation. This function assigns, per data type, what the featurizer should be. This function runs on each column within the dataset available for model building to assign how it should be featurized.</span>
 
 <span class="sd">    Users may override to create a custom encoder to enable their own featurization process. However, in order to generate template JSON-AI, this code runs automatically. Users may edit the generated syntax and use custom approaches while model building.</span>
@@ -353,10 +359,10 @@
     <span class="n">statistical_analysis</span><span class="p">:</span> <span class="n">StatisticalAnalysis</span><span class="p">,</span>
     <span class="n">problem_definition</span><span class="p">:</span> <span class="n">ProblemDefinition</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonAI</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given ``TypeInformation``, ``StatisticalAnalysis``, and the ``ProblemDefinition``, generate a JSON config file with the necessary elements of the ML pipeline populated.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given ``type_infer.TypeInformation``, ``dataprep_ml.StatisticalAnalysis``, and the ``ProblemDefinition``, generate a JSON config file with the necessary elements of the ML pipeline populated.</span>
 
-<span class="sd">    :param TypeInformation: Specifies what data types each column within the dataset are</span>
+<span class="sd">    :param TypeInformation: Specifies what data types each column within the dataset are. Generated by `mindsdb/type_infer`.</span>
 <span class="sd">    :param statistical_analysis:</span>
 <span class="sd">    :param problem_definition: Specifies details of the model training/building procedure, as defined by ``ProblemDefinition``</span>
 
@@ -366,12 +372,18 @@
     <span class="n">exec</span><span class="p">(</span><span class="n">IMPORT_EXTERNAL_DIRS</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">problem_definition</span><span class="o">.</span><span class="n">target</span>
     <span class="n">input_cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dependency_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">tss</span> <span class="o">=</span> <span class="n">problem_definition</span><span class="o">.</span><span class="n">timeseries_settings</span>
+
+    <span class="n">dtype_dict_override</span> <span class="o">=</span> <span class="n">problem_definition</span><span class="o">.</span><span class="n">dtype_dict</span>
     <span class="n">dtype_dict</span> <span class="o">=</span> <span class="n">type_information</span><span class="o">.</span><span class="n">dtypes</span>
+
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">type_information</span><span class="o">.</span><span class="n">identifiers</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">tss</span><span class="o">.</span><span class="n">is_timeseries</span> <span class="ow">and</span> <span class="n">tss</span><span class="o">.</span><span class="n">group_by</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tss</span><span class="o">.</span><span class="n">group_by</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">target</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">dtype_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-    <span class="n">dependency_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dtype_dict_override</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dtype_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
     <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_dtype</span> <span class="ow">in</span> <span class="n">dtype_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="p">(</span>
@@ -441,7 +453,7 @@
             <span class="n">submodels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="p">{</span>
-                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;LightGBM&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;XGBoostMixer&quot;</span><span class="p">,</span>
                         <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
                             <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
                             <span class="s2">&quot;fit_on_dev&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -462,47 +474,34 @@
                     <span class="p">},</span>
                 <span class="p">]</span>
             <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">tss</span><span class="o">.</span><span class="n">is_timeseries</span> <span class="ow">and</span> <span class="n">tss</span><span class="o">.</span><span class="n">horizon</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">tss</span><span class="o">.</span><span class="n">is_timeseries</span> <span class="ow">and</span> <span class="n">tss</span><span class="o">.</span><span class="n">horizon</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">tss</span><span class="o">.</span><span class="n">use_previous_target</span> <span class="ow">and</span> \
+                <span class="n">dtype_dict</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">quantity</span><span class="p">):</span>
+
             <span class="n">submodels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="p">{</span>
-                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;LightGBMArray&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;SkTime&quot;</span><span class="p">,</span>
                         <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;fit_on_dev&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                             <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;ts_analysis&quot;</span><span class="p">:</span> <span class="s2">&quot;$ts_analysis&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;tss&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
+                        <span class="p">},</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;ETSMixer&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
+                        <span class="p">},</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;ARIMAMixer&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">}</span>
                 <span class="p">]</span>
             <span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">tss</span><span class="o">.</span><span class="n">use_previous_target</span> <span class="ow">and</span> <span class="n">dtype_dict</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">quantity</span><span class="p">):</span>
-                <span class="n">submodels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                    <span class="p">[</span>
-                        <span class="p">{</span>
-                            <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;SkTime&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
-                                <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
-                            <span class="p">},</span>
-                        <span class="p">},</span>
-                        <span class="p">{</span>
-                            <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;ETSMixer&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
-                                <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
-                            <span class="p">},</span>
-                        <span class="p">},</span>
-                        <span class="p">{</span>
-                            <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;ARIMAMixer&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
-                                <span class="s2">&quot;stop_after&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.horizon&quot;</span><span class="p">,</span>
-                            <span class="p">},</span>
-                        <span class="p">}</span>
-                    <span class="p">]</span>
-                <span class="p">)</span>
 
     <span class="n">model</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;BestOf&quot;</span><span class="p">,</span>
@@ -566,11 +565,11 @@
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">is_ts</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">output_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">output_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">quantity</span><span class="p">]:</span>
             <span class="c1"># forces this acc fn for t+1 time series forecasters</span>
             <span class="n">accuracy_functions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;complementary_smape_array_accuracy&quot;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">output_dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">num_tsarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">output_dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">dtype</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">quantity</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">num_tsarray</span><span class="p">):</span>
             <span class="n">imputers</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;NumericalImputer&quot;</span><span class="p">,</span>
                              <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
                                  <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;&#39;zero&#39;&quot;</span><span class="p">,</span>
@@ -626,7 +625,7 @@
 
 
 <span class="k">def</span> <span class="nf">_merge_implicit_values</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">implicit_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function for `_populate_implicit_field`.</span>
 <span class="sd">    Takes a user-defined field along with its implicit value, and merges them together.</span>
 
@@ -657,7 +656,7 @@
 <span class="k">def</span> <span class="nf">_populate_implicit_field</span><span class="p">(</span>
     <span class="n">json_ai</span><span class="p">:</span> <span class="n">JsonAI</span><span class="p">,</span> <span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">implicit_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">is_timeseries</span><span class="p">:</span> <span class="nb">bool</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Populate the implicit field of the JsonAI, either by filling it in entirely if missing, or by introspecting the class or function and assigning default values to the args in it&#39;s signature that are in the implicit default but haven&#39;t been populated by the user</span>
 
 <span class="sd">    :params: json_ai: ``JsonAI`` object that describes the ML pipeline that may not have every detail fully specified.</span>
@@ -699,7 +698,7 @@
 
 
 <span class="k">def</span> <span class="nf">_add_implicit_values</span><span class="p">(</span><span class="n">json_ai</span><span class="p">:</span> <span class="n">JsonAI</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonAI</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To enable brevity in writing, auto-generate the &quot;unspecified/missing&quot; details required in the ML pipeline.</span>
 
 <span class="sd">    :params: json_ai: ``JsonAI`` object that describes the ML pipeline that may not have every detail fully specified.</span>
@@ -745,28 +744,40 @@
         <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;stop_after&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stop_after&quot;</span><span class="p">,</span> <span class="s2">&quot;$problem_definition.seconds_per_mixer&quot;</span><span class="p">)</span>
 
         <span class="c1"># specific</span>
-        <span class="k">if</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Neural&quot;</span><span class="p">,</span> <span class="s2">&quot;NeuralTs&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Neural&quot;</span><span class="p">,</span> <span class="s2">&quot;NeuralTs&quot;</span><span class="p">,</span> <span class="s2">&quot;TabTransformerMixer&quot;</span><span class="p">):</span>
             <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;target_encoder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;target_encoder&quot;</span><span class="p">,</span> <span class="s2">&quot;$encoders[self.target]&quot;</span>
             <span class="p">)</span>
-            <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s2">&quot;net&quot;</span><span class="p">,</span>
-                <span class="s1">&#39;&quot;DefaultNet&quot;&#39;</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">tss</span><span class="o">.</span><span class="n">is_timeseries</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">tss</span><span class="o">.</span><span class="n">use_previous_target</span>
-                <span class="k">else</span> <span class="s1">&#39;&quot;ArNet&quot;&#39;</span><span class="p">,</span>
-            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Neural&quot;</span><span class="p">,</span> <span class="s2">&quot;NeuralTs&quot;</span><span class="p">):</span>
+                <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s2">&quot;net&quot;</span><span class="p">,</span>
+                    <span class="s1">&#39;&quot;DefaultNet&quot;&#39;</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">tss</span><span class="o">.</span><span class="n">is_timeseries</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">tss</span><span class="o">.</span><span class="n">use_previous_target</span>
+                    <span class="k">else</span> <span class="s1">&#39;&quot;ArNet&quot;&#39;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;search_hyperparameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;search_hyperparameters&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;fit_on_dev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fit_on_dev&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NeuralTs&quot;</span><span class="p">:</span>
                 <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;timeseries_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                     <span class="s2">&quot;timeseries_settings&quot;</span><span class="p">,</span> <span class="s2">&quot;$problem_definition.timeseries_settings&quot;</span>
                 <span class="p">)</span>
                 <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;ts_analysis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ts_analysis&quot;</span><span class="p">,</span> <span class="s2">&quot;$ts_analysis&quot;</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LightGBM&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;TabTransformerMixer&quot;</span><span class="p">:</span>
+                <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;search_hyperparameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;search_hyperparameters&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;fit_on_dev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fit_on_dev&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;module&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;LightGBM&quot;</span><span class="p">,</span> <span class="s2">&quot;XGBoostMixer&quot;</span><span class="p">):</span>
             <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;input_cols&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;input_cols&quot;</span><span class="p">,</span> <span class="s2">&quot;$input_cols&quot;</span>
             <span class="p">)</span>
             <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;target_encoder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;target_encoder&quot;</span><span class="p">,</span> <span class="s2">&quot;$encoders[self.target]&quot;</span>
+            <span class="p">)</span>
+            <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;fit_on_dev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;fit_on_dev&quot;</span><span class="p">,</span> <span class="kc">True</span>
             <span class="p">)</span>
             <span class="n">mixers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;use_optuna&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -827,14 +838,14 @@
                 <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="s2">&quot;$target&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;$mode&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;imputers&quot;</span><span class="p">:</span> <span class="s2">&quot;$imputers&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;timeseries_settings&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;timeseries_settings&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.to_dict()&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;anomaly_detection&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.anomaly_detection&quot;</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">},</span>
         <span class="s2">&quot;splitter&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;splitter&quot;</span><span class="p">,</span>
             <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;tss&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;tss&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.timeseries_settings.to_dict()&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="s2">&quot;$problem_definition.seed_nr&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="s2">&quot;$target&quot;</span><span class="p">,</span>
@@ -904,7 +915,8 @@
                 <span class="s2">&quot;dtype_dict&quot;</span><span class="p">:</span> <span class="s2">&quot;$dtype_dict&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="s2">&quot;$target&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;$mode&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;ts_analysis&quot;</span><span class="p">:</span> <span class="s2">&quot;$ts_analysis&quot;</span>
+                <span class="s2">&quot;ts_analysis&quot;</span><span class="p">:</span> <span class="s2">&quot;$ts_analysis&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;pred_args&quot;</span><span class="p">:</span> <span class="s2">&quot;$pred_args&quot;</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">},</span>
         <span class="s2">&quot;timeseries_analyzer&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -934,7 +946,7 @@
 
 
 <div class="viewcode-block" id="code_from_json_ai"><a class="viewcode-back" href="../../api/json_ai.html#api.json_ai.code_from_json_ai">[docs]</a><span class="k">def</span> <span class="nf">code_from_json_ai</span><span class="p">(</span><span class="n">json_ai</span><span class="p">:</span> <span class="n">JsonAI</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a custom ``PredictorInterface`` given the specifications from ``JsonAI`` object.</span>
 
 <span class="sd">    :param json_ai: ``JsonAI`` object with fully specified parameters</span>
@@ -1009,10 +1021,10 @@
     <span class="k">if</span> <span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_transformer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ts_transform_code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">log.info(&#39;Transforming timeseries data&#39;)</span>
-<span class="s2">data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_transformer</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_transformer</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
         <span class="n">ts_analyze_code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">self.ts_analysis = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_analyzer</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">self.ts_analysis = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_analyzer</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
     <span class="c1"># @TODO: set these kwargs/properties in the json ai construction (if possible)</span>
     <span class="k">if</span> <span class="n">json_ai</span><span class="o">.</span><span class="n">timeseries_analyzer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1035,13 +1047,13 @@
     <span class="c1"># ----------------- #</span>
 
     <span class="n">analyze_data_body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">self.statistical_analysis = lightwood.data.statistical_analysis(data,</span>
-<span class="s2">                                                                self.dtype_dict,</span>
-<span class="s2">                                                                </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">identifiers</span><span class="si">}</span><span class="s2">,</span>
-<span class="s2">                                                                self.problem_definition)</span>
+<span class="s2">self.statistical_analysis = statistical_analysis(data,</span>
+<span class="s2">                                                 self.dtype_dict,</span>
+<span class="s2">                                                 self.problem_definition.to_dict(),</span>
+<span class="s2">                                                 </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">identifiers</span><span class="si">}</span><span class="s2">)</span>
 
 <span class="s2"># Instantiate post-training evaluation</span>
-<span class="s2">self.analysis_blocks = [</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">call</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">json_ai</span><span class="o">.</span><span class="n">analysis_blocks</span><span class="p">])</span><span class="si">}</span><span class="s2">]</span>
+<span class="s2">self.analysis_blocks = [</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">call</span><span class="p">(</span><span class="n">block</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">json_ai</span><span class="o">.</span><span class="n">analysis_blocks</span><span class="p">])</span><span class="si">}</span><span class="s2">]</span>
 <span class="s2">    &quot;&quot;&quot;</span>
 
     <span class="n">analyze_data_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">analyze_data_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -1052,11 +1064,11 @@
 
     <span class="n">clean_body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">log.info(&#39;Cleaning the data&#39;)</span>
-<span class="s2">self.imputers = </span><span class="si">{</span><span class="n">imputers</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">cleaner</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">self.imputers = </span><span class="si">{</span><span class="n">imputers</span><span class="si">}</span>
+<span class="s2">data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">cleaner</span><span class="p">)</span><span class="si">}</span>
 
 <span class="s2"># Time-series blocks</span>
-<span class="si">{</span><span class="n">ts_transform_code</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">ts_transform_code</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
     <span class="n">clean_body</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">return data&#39;</span>
@@ -1069,7 +1081,7 @@
 
     <span class="n">split_body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">log.info(&quot;Splitting the data into train/test&quot;)</span>
-<span class="s2">train_test_data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">train_test_data = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span><span class="si">}</span>
 
 <span class="s2">return train_test_data</span>
 <span class="s2">    &quot;&quot;&quot;</span>
@@ -1089,30 +1101,39 @@
     <span class="k">if</span> <span class="n">ts_analyze_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">prepare_body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">if self.mode != &#39;predict&#39;:</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_analyze_code</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_analyze_code</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
     <span class="n">prepare_body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2"># Column to encoder mapping</span>
-<span class="s2">self.encoders = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">encoder_dict</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">self.encoders = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">encoder_dict</span><span class="p">)</span><span class="si">}</span>
 
 <span class="s2"># Prepare the training + dev data</span>
 <span class="s2">concatenated_train_dev = pd.concat([data[&#39;train&#39;], data[&#39;dev&#39;]])</span>
 
-<span class="s2">encoder_prepping_dict = </span><span class="se">{{}}</span><span class="s2"></span>
+<span class="s2">prepped_encoders = </span><span class="se">{{}}</span>
 
-<span class="s2"># Prepare encoders that do not require learned strategies</span>
-<span class="s2">for col_name, encoder in self.encoders.items():</span>
-<span class="s2">    if col_name != self.target and not encoder.is_trainable_encoder:</span>
-<span class="s2">        encoder_prepping_dict[col_name] = [encoder, concatenated_train_dev[col_name], &#39;prepare&#39;]</span>
+<span class="s2"># Prepare input encoders</span>
+<span class="s2">parallel_encoding = parallel_encoding_check(data[&#39;train&#39;], self.encoders)</span>
 
-<span class="s2"># Setup parallelization</span>
-<span class="s2">parallel_prepped_encoders = mut_method_call(encoder_prepping_dict)</span>
-<span class="s2">for col_name, encoder in parallel_prepped_encoders.items():</span>
+<span class="s2">if parallel_encoding:</span>
+<span class="s2">    for col_name, encoder in self.encoders.items():</span>
+<span class="s2">        if col_name != self.target and not encoder.is_trainable_encoder:</span>
+<span class="s2">            prepped_encoders[col_name] = (encoder, concatenated_train_dev[col_name], &#39;prepare&#39;)</span>
+<span class="s2">    prepped_encoders = mut_method_call(prepped_encoders)</span>
+
+<span class="s2">else:</span>
+<span class="s2">    for col_name, encoder in self.encoders.items():</span>
+<span class="s2">        if col_name != self.target and not encoder.is_trainable_encoder:</span>
+<span class="s2">            encoder.prepare(concatenated_train_dev[col_name])</span>
+<span class="s2">            prepped_encoders[col_name] = encoder</span>
+
+<span class="s2"># Store encoders</span>
+<span class="s2">for col_name, encoder in prepped_encoders.items():</span>
 <span class="s2">    self.encoders[col_name] = encoder</span>
 
 <span class="s2"># Prepare the target</span>
-<span class="s2">if self.target not in parallel_prepped_encoders:</span>
+<span class="s2">if self.target not in prepped_encoders:</span>
 <span class="s2">    if self.encoders[self.target].is_trainable_encoder:</span>
 <span class="s2">        self.encoders[self.target].prepare(data[&#39;train&#39;][self.target], data[&#39;dev&#39;][self.target])</span>
 <span class="s2">    else:</span>
@@ -1122,15 +1143,15 @@
 <span class="s2">for col_name, encoder in self.encoders.items():</span>
 <span class="s2">    if col_name != self.target and encoder.is_trainable_encoder:</span>
 <span class="s2">        priming_data = pd.concat([data[&#39;train&#39;], data[&#39;dev&#39;]])</span>
-<span class="s2">        kwargs = </span><span class="se">{{}}</span><span class="s2"></span>
+<span class="s2">        kwargs = </span><span class="se">{{}}</span>
 <span class="s2">        if self.dependencies[col_name]:</span>
-<span class="s2">            kwargs[&#39;dependency_data&#39;] = </span><span class="se">{{}}</span><span class="s2"></span>
+<span class="s2">            kwargs[&#39;dependency_data&#39;] = </span><span class="se">{{}}</span>
 <span class="s2">            for col in self.dependencies[col_name]:</span>
-<span class="s2">                kwargs[&#39;dependency_data&#39;][col] = </span><span class="se">{{</span><span class="s2"></span>
+<span class="s2">                kwargs[&#39;dependency_data&#39;][col] = </span><span class="se">{{</span>
 <span class="s2">                    &#39;original_type&#39;: self.dtype_dict[col],</span>
 <span class="s2">                    &#39;data&#39;: priming_data[col]</span>
-<span class="s2">                </span><span class="se">}}</span><span class="s2"></span>
-<span class="s2">            </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_encoder_code</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">                </span><span class="se">}}</span>
+<span class="s2">            </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_encoder_code</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="si">}</span>
 
 <span class="s2">        # If an encoder representation requires the target, provide priming data</span>
 <span class="s2">        if hasattr(encoder, &#39;uses_target&#39;):</span>
@@ -1138,7 +1159,7 @@
 
 <span class="s2">        encoder.prepare(data[&#39;train&#39;][col_name], data[&#39;dev&#39;][col_name], **kwargs)</span>
 
-<span class="s2">    </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_target_code</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{</span><span class="n">align</span><span class="p">(</span><span class="n">ts_target_code</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
     <span class="n">prepare_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">prepare_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -1149,7 +1170,7 @@
     <span class="n">feature_body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">log.info(&#39;Featurizing the data&#39;)</span>
 
-<span class="s2">feature_data = </span><span class="se">{{</span><span class="s2"> key: EncodedDs(self.encoders, data, self.target) for key, data in split_data.items() if key != &quot;stratified_on&quot;</span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">feature_data = </span><span class="se">{{</span><span class="s2"> key: EncodedDs(self.encoders, data, self.target) for key, data in split_data.items() if key != &quot;stratified_on&quot;</span><span class="se">}}</span>
 
 <span class="s2">return feature_data</span>
 
@@ -1180,13 +1201,18 @@
 <span class="s2"># Fit Models</span>
 <span class="s2"># --------------- #</span>
 <span class="s2"># Assign list of mixers</span>
-<span class="s2">self.mixers = [</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">call</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json_ai</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;submodels&quot;</span><span class="p">]])</span><span class="si">}</span><span class="s2">]</span>
+<span class="s2">self.mixers = [</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">call</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">json_ai</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;submodels&quot;</span><span class="p">]])</span><span class="si">}</span><span class="s2">]</span>
 
 <span class="s2"># Train mixers</span>
 <span class="s2">trained_mixers = []</span>
 <span class="s2">for mixer in self.mixers:</span>
 <span class="s2">    try:</span>
-<span class="s2">        self.fit_mixer(mixer, encoded_train_data, encoded_dev_data)</span>
+<span class="s2">        if mixer.trains_once:</span>
+<span class="s2">            self.fit_mixer(mixer,</span>
+<span class="s2">                           ConcatedEncodedDs([encoded_train_data, encoded_dev_data]),</span>
+<span class="s2">                           encoded_test_data)</span>
+<span class="s2">        else:</span>
+<span class="s2">            self.fit_mixer(mixer, encoded_train_data, encoded_dev_data)</span>
 <span class="s2">        trained_mixers.append(mixer)</span>
 <span class="s2">    except Exception as e:</span>
 <span class="s2">        log.warning(f&#39;Exception: </span><span class="se">{{</span><span class="s2">e</span><span class="se">}}</span><span class="s2"> when training mixer: </span><span class="se">{{</span><span class="s2">mixer</span><span class="se">}}</span><span class="s2">&#39;)</span>
@@ -1194,6 +1220,8 @@
 <span class="s2">            raise e</span>
 
 <span class="s2"># Update mixers to trained versions</span>
+<span class="s2">if not trained_mixers:</span>
+<span class="s2">    raise Exception(&#39;No mixers could be trained! Please verify your problem definition or JsonAI model representation.&#39;)</span>
 <span class="s2">self.mixers = trained_mixers</span>
 
 <span class="s2"># --------------- #</span>
@@ -1201,9 +1229,8 @@
 <span class="s2"># --------------- #</span>
 <span class="s2">log.info(&#39;Ensembling the mixer&#39;)</span>
 <span class="s2"># Create an ensemble of mixers to identify best performing model</span>
-<span class="s2">self.pred_args = PredictionArguments()</span>
 <span class="s2"># Dirty hack</span>
-<span class="s2">self.ensemble = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">self.ensemble = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">self.supports_proba = self.ensemble.supports_proba</span>
 <span class="s2">&quot;&quot;&quot;</span>
     <span class="n">fit_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">fit_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -1226,7 +1253,7 @@
 <span class="s2"># Analyze Ensembles</span>
 <span class="s2"># --------------- #</span>
 <span class="s2">log.info(&#39;Analyzing the ensemble of mixers&#39;)</span>
-<span class="s2">self.model_analysis, self.runtime_analyzer = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">analyzer</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">self.model_analysis, self.runtime_analyzer = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">analyzer</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
     <span class="n">analyze_ensemble</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">analyze_ensemble</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -1241,23 +1268,25 @@
 <span class="s2"># Prepare data</span>
 <span class="s2"># --------------- #</span>
 <span class="s2">if dev_data is None:</span>
-<span class="s2">    data = train_data if isinstance(train_data, pd.DataFrame) else train_data.data_frame</span>
-<span class="s2">    split = splitter(data,</span>
-<span class="s2">        self.problem_definition.timeseries_settings,</span>
-<span class="s2">        self.dtype_dict,</span>
-<span class="s2">        self.problem_definition.seed_nr,</span>
+<span class="s2">    data = train_data</span>
+<span class="s2">    split = splitter(</span>
+<span class="s2">        data=data,</span>
 <span class="s2">        pct_train=0.8,</span>
 <span class="s2">        pct_dev=0.2,</span>
 <span class="s2">        pct_test=0,</span>
-<span class="s2">        target=self.target)</span>
+<span class="s2">        tss=self.problem_definition.timeseries_settings.to_dict(),</span>
+<span class="s2">        seed=self.problem_definition.seed_nr,</span>
+<span class="s2">        target=self.target,</span>
+<span class="s2">        dtype_dict=self.dtype_dict)</span>
 <span class="s2">    train_data = split[&#39;train&#39;]</span>
 <span class="s2">    dev_data = split[&#39;dev&#39;]</span>
 
-<span class="s2">if isinstance(dev_data, pd.DataFrame):</span>
-<span class="s2">    dev_data = EncodedDs(self.encoders, dev_data, self.target)</span>
+<span class="s2">if adjust_args is None or not adjust_args.get(&#39;learn_call&#39;):</span>
+<span class="s2">    train_data = self.preprocess(train_data)</span>
+<span class="s2">    dev_data = self.preprocess(dev_data)</span>
 
-<span class="s2">if isinstance(train_data, pd.DataFrame):</span>
-<span class="s2">    train_data = EncodedDs(self.encoders, train_data, self.target)</span>
+<span class="s2">dev_data = EncodedDs(self.encoders, dev_data, self.target)</span>
+<span class="s2">train_data = EncodedDs(self.encoders, train_data, self.target)</span>
 
 <span class="s2"># --------------- #</span>
 <span class="s2"># Update/Adjust Mixers</span>
@@ -1265,7 +1294,7 @@
 <span class="s2">log.info(&#39;Updating the mixers&#39;)</span>
 
 <span class="s2">for mixer in self.mixers:</span>
-<span class="s2">    mixer.partial_fit(train_data, dev_data)</span>
+<span class="s2">        mixer.partial_fit(train_data, dev_data, adjust_args)</span>
 <span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa</span>
 
     <span class="n">adjust_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">adjust_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -1312,10 +1341,11 @@
 <span class="s2"># SET `json_ai.problem_definition.fit_on_all=False` TO TURN THIS BLOCK OFF.</span>
 
 <span class="s2"># Update the mixers with partial fit</span>
-<span class="s2">if self.problem_definition.fit_on_all:</span>
-
+<span class="s2">if self.problem_definition.fit_on_all and all([not m.trains_once for m in self.mixers]):</span>
 <span class="s2">    log.info(f&#39;[Learn phase 8/</span><span class="si">{n_phases}</span><span class="s2">] - Adjustment on validation requested&#39;)</span>
-<span class="s2">    self.adjust(enc_train_test[&quot;test&quot;], ConcatedEncodedDs([enc_train_test[&quot;train&quot;], enc_train_test[&quot;dev&quot;]]))</span>
+<span class="s2">    self.adjust(enc_train_test[&quot;test&quot;].data_frame, ConcatedEncodedDs([enc_train_test[&quot;train&quot;],</span>
+<span class="s2">                                                                      enc_train_test[&quot;dev&quot;]]).data_frame,</span>
+<span class="s2">                                                                      adjust_args={&#39;learn_call&#39;: True})</span>
 
 <span class="s2">&quot;&quot;&quot;</span>
     <span class="n">learn_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">learn_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -1329,6 +1359,8 @@
 
 <span class="s2">if len(data) == 0:</span>
 <span class="s2">    raise Exception(&quot;Empty input, aborting prediction. Please try again with some input data.&quot;)</span>
+
+<span class="s2">self.pred_args = PredictionArguments.from_dict(args)</span>
 
 <span class="s2">log.info(f&#39;[Predict phase 1/</span><span class="se">{{</span><span class="s2">n_phases</span><span class="se">}}</span><span class="s2">] - Data preprocessing&#39;)</span>
 <span class="s2">if self.problem_definition.ignore_features:</span>
@@ -1347,22 +1379,22 @@
 <span class="s2">encoded_data = encoded_ds.get_encoded_data(include_target=False)</span>
 
 <span class="s2">log.info(f&#39;[Predict phase 3/</span><span class="se">{{</span><span class="s2">n_phases</span><span class="se">}}</span><span class="s2">] - Calling ensemble&#39;)</span>
-<span class="s2">self.pred_args = PredictionArguments.from_dict(args)</span>
 <span class="s2">df = self.ensemble(encoded_ds, args=self.pred_args)</span>
 
 <span class="s2">if self.pred_args.all_mixers:</span>
 <span class="s2">    return df</span>
 <span class="s2">else:</span>
 <span class="s2">    log.info(f&#39;[Predict phase 4/</span><span class="se">{{</span><span class="s2">n_phases</span><span class="se">}}</span><span class="s2">] - Analyzing output&#39;)</span>
-<span class="s2">    insights, global_insights = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">explainer</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    insights, global_insights = </span><span class="si">{</span><span class="n">call</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">explainer</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">    self.global_insights = </span><span class="se">{{</span><span class="s2">**self.global_insights, **global_insights</span><span class="se">}}</span>
 <span class="s2">    return insights</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
     <span class="n">predict_body</span> <span class="o">=</span> <span class="n">align</span><span class="p">(</span><span class="n">predict_body</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="n">predictor_code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="si">{</span><span class="n">IMPORTS</span><span class="si">}</span><span class="s2"></span>
-<span class="si">{</span><span class="n">IMPORT_EXTERNAL_DIRS</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">IMPORTS</span><span class="si">}</span>
+<span class="si">{</span><span class="n">IMPORT_EXTERNAL_DIRS</span><span class="si">}</span>
 
 <span class="s2">class Predictor(PredictorInterface):</span>
 <span class="s2">    target: str</span>
@@ -1376,13 +1408,14 @@
 <span class="s2">        self.target = &#39;</span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">problem_definition</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">&#39;</span>
 <span class="s2">        self.mode = &#39;inactive&#39;</span>
 <span class="s2">        self.problem_definition = ProblemDefinition.from_dict(</span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">problem_definition</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="si">}</span><span class="s2">)</span>
-<span class="s2">        self.accuracy_functions = </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">accuracy_functions</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">        self.identifiers = </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">identifiers</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">        self.dtype_dict = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">dtype_dict</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        self.accuracy_functions = </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">accuracy_functions</span><span class="si">}</span>
+<span class="s2">        self.identifiers = </span><span class="si">{</span><span class="n">json_ai</span><span class="o">.</span><span class="n">identifiers</span><span class="si">}</span>
+<span class="s2">        self.dtype_dict = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">dtype_dict</span><span class="p">)</span><span class="si">}</span>
 <span class="s2">        self.lightwood_version = &#39;</span><span class="si">{</span><span class="n">lightwood_version</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        self.pred_args = PredictionArguments()</span>
 
 <span class="s2">        # Any feature-column dependencies</span>
-<span class="s2">        self.dependencies = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">dependency_dict</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        self.dependencies = </span><span class="si">{</span><span class="n">inline_dict</span><span class="p">(</span><span class="n">json_ai</span><span class="o">.</span><span class="n">dependency_dict</span><span class="p">)</span><span class="si">}</span>
 
 <span class="s2">        self.input_cols = [</span><span class="si">{</span><span class="n">input_cols</span><span class="si">}</span><span class="s2">]</span>
 
@@ -1390,36 +1423,37 @@
 <span class="s2">        self.statistical_analysis = None</span>
 <span class="s2">        self.ts_analysis = None</span>
 <span class="s2">        self.runtime_log = dict()</span>
+<span class="s2">        self.global_insights = dict()</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def analyze_data(self, data: pd.DataFrame) -&gt; None:</span>
 <span class="s2">        # Perform a statistical analysis on the unprocessed data</span>
-<span class="si">{</span><span class="n">analyze_data_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">analyze_data_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def preprocess(self, data: pd.DataFrame) -&gt; pd.DataFrame:</span>
 <span class="s2">        # Preprocess and clean data</span>
-<span class="si">{</span><span class="n">clean_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">clean_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def split(self, data: pd.DataFrame) -&gt; Dict[str, pd.DataFrame]:</span>
 <span class="s2">        # Split the data into training/testing splits</span>
-<span class="si">{</span><span class="n">split_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">split_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def prepare(self, data: Dict[str, pd.DataFrame]) -&gt; None:</span>
 <span class="s2">        # Prepare encoders to featurize data</span>
-<span class="si">{</span><span class="n">prepare_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">prepare_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def featurize(self, split_data: Dict[str, pd.DataFrame]):</span>
 <span class="s2">        # Featurize data into numerical representations for models</span>
-<span class="si">{</span><span class="n">feature_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">feature_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def fit(self, enc_data: Dict[str, pd.DataFrame]) -&gt; None:</span>
 <span class="s2">        # Fit predictors to estimate target</span>
-<span class="si">{</span><span class="n">fit_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">fit_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def fit_mixer(self, mixer, encoded_train_data, encoded_dev_data) -&gt; None:</span>
@@ -1428,24 +1462,25 @@
 <span class="s2">    @timed</span>
 <span class="s2">    def analyze_ensemble(self, enc_data: Dict[str, pd.DataFrame]) -&gt; None:</span>
 <span class="s2">        # Evaluate quality of fit for the ensemble of mixers</span>
-<span class="si">{</span><span class="n">analyze_ensemble</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">analyze_ensemble</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def learn(self, data: pd.DataFrame) -&gt; None:</span>
 <span class="s2">        if self.problem_definition.ignore_features:</span>
 <span class="s2">            log.info(f&#39;Dropping features: </span><span class="se">{{</span><span class="s2">self.problem_definition.ignore_features</span><span class="se">}}</span><span class="s2">&#39;)</span>
 <span class="s2">            data = data.drop(columns=self.problem_definition.ignore_features, errors=&#39;ignore&#39;)</span>
-<span class="si">{</span><span class="n">learn_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">learn_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def adjust(self, train_data: Union[EncodedDs, ConcatedEncodedDs, pd.DataFrame],</span>
-<span class="s2">        dev_data: Optional[Union[EncodedDs, ConcatedEncodedDs, pd.DataFrame]] = None) -&gt; None:</span>
+<span class="s2">        dev_data: Optional[Union[EncodedDs, ConcatedEncodedDs, pd.DataFrame]] = None,</span>
+<span class="s2">        adjust_args: Optional[dict] = None) -&gt; None:</span>
 <span class="s2">        # Update mixers with new information</span>
-<span class="si">{</span><span class="n">adjust_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">adjust_body</span><span class="si">}</span>
 
 <span class="s2">    @timed</span>
 <span class="s2">    def predict(self, data: pd.DataFrame, args: Dict = </span><span class="se">{{}}</span><span class="s2">) -&gt; pd.DataFrame:</span>
-<span class="si">{</span><span class="n">predict_body</span><span class="si">}</span><span class="s2"></span>
+<span class="si">{</span><span class="n">predict_body</span><span class="si">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -1461,7 +1496,7 @@
 
 
 <div class="viewcode-block" id="validate_json_ai"><a class="viewcode-back" href="../../api/json_ai.html#api.json_ai.validate_json_ai">[docs]</a><span class="k">def</span> <span class="nf">validate_json_ai</span><span class="p">(</span><span class="n">json_ai</span><span class="p">:</span> <span class="n">JsonAI</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks the validity of a ``JsonAI`` object</span>
 
 <span class="sd">    :param json_ai: A ``JsonAI`` object</span>
@@ -1486,7 +1521,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>

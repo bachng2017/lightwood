@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Encoders &mdash; lightwood 22.10.4.1 documentation</title>
+  <title>Encoders &mdash; lightwood 23.5.1.1 documentation</title>
   
 
   
@@ -74,7 +74,7 @@
             
             
               <div class="version">
-                22.10.4.1
+                23.5.1.1
               </div>
             
           
@@ -296,31 +296,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="encoders">
+  <div class="section" id="encoders">
 <h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">Encoders</span></code><a class="headerlink" href="#encoders" title="Permalink to this headline">¶</a></h1>
 <p>Used for encoding data into PyTorch tensors and decoding it from pytorch tensors</p>
 <span class="target" id="module-encoder"></span><dl class="py class">
@@ -470,7 +446,7 @@ B &amp;= [0, 1]\]</div>
 <p>This encoder is a specialized case of one-hot encoding (OHE); unknown categories are explicitly handled as [0, 0]. Unknowns may only be reported if the input row value is NULL (or python <cite>None</cite> type) or if new data, after the encoder is prepared, has examples outside the feature map.</p>
 <p>When data is typed with Lightwood, this class is only deployed if an input data type is explicitly recognized as binary (i.e. the column has only 2 unique values like True/False). If future data shows a new category (thus the data is no longer truly binary), this encoder will no longer be appropriate unless you are comfortable mapping ALL new classes as [0, 0].</p>
 <p>An encoder can represent a feature column or target column; in this case it represents a target, <cite>is_target</cite> is <cite>True</cite>, and <cite>target_weights</cite>. The <cite>target_weights</cite> parameter enables users to specify how heavily each class should be weighted within a mixer - useful in imbalanced classes.</p>
-<p>By default, the <cite>StatisticalAnalysis</cite> phase will provide <cite>target_weights</cite> as the relative fraction of each class in the data which is important for imbalanced populations; for example, suppose there is a 80/20 imbalanced representation across 3 different classes - <cite>target_weights</cite> will be a vector as such:</p>
+<p>By default, <cite>dataprep_ml.StatisticalAnalysis</cite> phase will provide <cite>target_weights</cite> as the relative fraction of each class in the data which is important for imbalanced populations; for example, suppose there is a 80/20 imbalanced representation across 3 different classes - <cite>target_weights</cite> will be a vector as such:</p>
 <p>target_weights = {“class1”: 0.8, “class2”: 0.2}</p>
 <p>Users should note that models will be presented with the inverse of the target weights, <cite>inv_target_weights</cite>, which will perform the 1/target_value_per_class operation. <strong>This means large values will result in small weights for the model</strong>.</p>
 </div></blockquote>
@@ -954,7 +930,7 @@ C &amp;= [0, 0, 1]\]</div>
 </dd>
 </dl>
 <p>An encoder can represent a feature column or target column; in this case it represents a target, <cite>is_target</cite> is <cite>True</cite>, and <cite>target_weights</cite>. The <cite>target_weights</cite> parameter enables users to specify how heavily each class should be weighted within a mixer - useful in imbalanced classes.</p>
-<p>By default, the <cite>StatisticalAnalysis</cite> phase will provide <cite>target_weights</cite> as the relative fraction of each class in the data which is important for imbalanced populations; for example, suppose there is a 80/05/15 imbalanced representation across 3 different classes - <cite>target_weights</cite> will be a vector as such:</p>
+<p>By default, <cite>dataprep_ml.StatisticalAnalysis</cite> phase will provide <cite>target_weights</cite> as the relative fraction of each class in the data which is important for imbalanced populations; for example, suppose there is a 80/05/15 imbalanced representation across 3 different classes - <cite>target_weights</cite> will be a vector as such:</p>
 <p>target_weights = {“class1”: 0.8, “class2”: 0.05, “class3”: 0.15}</p>
 <p>Users should note that models will be presented with the inverse of the target weights, <cite>inv_target_weights</cite>, which will perform the 1/target_value_per_class operation. <strong>This means large values will result in small weights for the model</strong>.</p>
 <dl class="field-list simple">
@@ -1520,7 +1496,7 @@ When None, it will be set automatically based on is_target:
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2017-2022, MindsDB.
+        &#169; Copyright 2017-2023, MindsDB.
 
     </p>
   </div>
